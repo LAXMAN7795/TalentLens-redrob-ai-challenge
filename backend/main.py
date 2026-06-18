@@ -19,6 +19,33 @@ async def lifespan(app: FastAPI):
     Lifespan context manager that handles server startup routines,
     specifically creating database tables.
     """
+    import os
+    logger.info("================ DEPLOYMENT DIAGNOSTICS ================")
+    logger.info(f"Current Working Directory: {os.getcwd()}")
+    logger.info(f"Effective UID: {os.getuid() if hasattr(os, 'getuid') else 'N/A'}")
+    logger.info(f"Effective GID: {os.getgid() if hasattr(os, 'getgid') else 'N/A'}")
+    from backend.core.config import settings
+    logger.info(f"DATABASE_URL Env: {settings.DATABASE_URL}")
+    
+    # Test writing to /tmp
+    try:
+        with open("/tmp/write_test.txt", "w") as f:
+            f.write("test")
+        logger.info("Test write to /tmp: SUCCESS")
+    except Exception as e:
+        logger.info(f"Test write to /tmp: FAILED - {e}")
+        
+    # Test writing to current directory
+    try:
+        with open("write_test.txt", "w") as f:
+            f.write("test")
+        logger.info("Test write to CWD: SUCCESS")
+        if os.path.exists("write_test.txt"):
+            os.remove("write_test.txt")
+    except Exception as e:
+        logger.info(f"Test write to CWD: FAILED - {e}")
+    logger.info("========================================================")
+
     logger.info("Starting up TalentLens FastAPI Server...")
     try:
         init_db()
