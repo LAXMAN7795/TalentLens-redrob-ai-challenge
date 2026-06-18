@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
@@ -30,8 +30,6 @@ class JobResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# Add Optional to imports inside the file if needed
-from typing import Optional
 
 @router.post("", response_model=JobResponse, status_code=status.HTTP_201_CREATED)
 def create_job(payload: JobCreate, db: Session = Depends(get_database_session)):
