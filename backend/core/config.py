@@ -12,7 +12,7 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-    GROQ_API_KEY: str = Field(..., description="Groq API Key")
+    GROQ_API_KEY: str = Field("", description="Groq API Key")
     GROQ_MODEL: str = Field("llama-3.3-70b-versatile", description="Default model for structured extraction")
     DATABASE_URL: str = Field("sqlite:///./talentlens.db", description="Database connection URL")
 

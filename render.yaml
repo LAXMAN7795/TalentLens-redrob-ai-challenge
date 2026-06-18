@@ -10,7 +10,7 @@ services:
       - key: GROQ_API_KEY
         sync: false # Render will prompt you to input this securely during setup
       - key: DATABASE_URL
-        value: sqlite:///app/backend/talentlens.db
+        value: sqlite:////app/talentlens.db
       - key: PYTHONPATH
         value: /app
 
