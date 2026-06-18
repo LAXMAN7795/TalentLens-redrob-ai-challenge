@@ -4,7 +4,8 @@ services:
     name: talentlens-backend
     env: docker
     plan: free # Free tier (using lightweight MiniLM model)
-    dockerfilePath: backend/Dockerfile
+    dockerfile: backend/Dockerfile
+    dockerContext: backend
     envVars:
       - key: GROQ_API_KEY
         sync: false # Render will prompt you to input this securely during setup
