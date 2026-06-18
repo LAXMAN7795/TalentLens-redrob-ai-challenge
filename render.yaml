@@ -1,0 +1,28 @@
+services:
+  # 1. Backend FastAPI Service
+  - type: web
+    name: talentlens-backend
+    env: docker
+    plan: starter # Starter plan provides 2 GB RAM (required for loading transformer models)
+    dockerfilePath: backend/Dockerfile
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false # Render will prompt you to input this securely during setup
+      - key: DATABASE_URL
+        value: sqlite:///app/backend/talentlens.db
+      - key: PYTHONPATH
+        value: /app
+
+  # 2. Frontend React static Service
+  - type: web
+    name: talentlens-frontend
+    env: static
+    root: frontend
+    buildCommand: npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: talentlens-backend
+          type: web
+          property: url
