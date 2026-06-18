@@ -2,7 +2,7 @@ services:
   # 1. Backend FastAPI Service
   - type: web
     name: talentlens-backend
-    env: docker
+    runtime: docker
     plan: free # Free tier (using lightweight MiniLM model)
     dockerfile: backend/Dockerfile
     dockerContext: backend
