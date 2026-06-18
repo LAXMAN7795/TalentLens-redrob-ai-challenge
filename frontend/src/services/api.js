@@ -1,4 +1,9 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+let baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+  baseUrl = `https://${baseUrl}/api`;
+}
+const API_BASE_URL = baseUrl;
+
 
 export async function getJobs() {
   const response = await fetch(`${API_BASE_URL}/jobs`);
