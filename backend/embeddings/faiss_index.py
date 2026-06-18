@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Union
 import numpy as np
 import faiss
 
