@@ -3,7 +3,7 @@ services:
   - type: web
     name: talentlens-backend
     env: docker
-    plan: starter # Starter plan provides 2 GB RAM (required for loading transformer models)
+    plan: free # Free tier (using lightweight MiniLM model)
     dockerfilePath: backend/Dockerfile
     envVars:
       - key: GROQ_API_KEY

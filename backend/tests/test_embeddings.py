@@ -14,11 +14,11 @@ def embedder():
     return CandidateEmbedder()
 
 def test_embedder_dimension_and_normalization(embedder):
-    """Verifies that the embedder outputs normalized vectors of exactly 1024 dimensions."""
+    """Verifies that the embedder outputs normalized vectors of correct dimensions."""
     texts = ["I am a Python engineer.", "React frontend developer specializing in CSS."]
     vectors = embedder.embed_passages(texts)
     
-    assert vectors.shape == (2, 1024)
+    assert vectors.shape == (2, embedder.dimension)
     # Check L2 normalization (norm should be extremely close to 1.0)
     for vec in vectors:
         norm = np.linalg.norm(vec)
@@ -29,7 +29,7 @@ def test_embedder_query_prefix(embedder):
     query = "Python developer"
     query_vec = embedder.embed_query(query)
     
-    assert query_vec.shape == (1024,)
+    assert query_vec.shape == (embedder.dimension,)
     assert pytest.approx(np.linalg.norm(query_vec), rel=1e-5) == 1.0
 
 def test_faiss_index_lifecycle():

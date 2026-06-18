@@ -12,7 +12,7 @@ class FAISSIndexManager:
     Manages vector storage, indexing, and similarity searches using FAISS.
     Maintains a persistent mapping between FAISS integer offsets and string Candidate IDs.
     """
-    def __init__(self, dimension: int = 1024):
+    def __init__(self, dimension: int = 384):
         self.dimension = dimension
         # Use IndexFlatIP (Inner Product) which acts as Cosine Similarity for L2-normalized vectors
         self.index = faiss.IndexFlatIP(dimension)

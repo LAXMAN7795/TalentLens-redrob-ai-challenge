@@ -10,7 +10,7 @@ class CandidateEmbedder:
     Generates semantic embeddings using the BAAI/bge-large-en-v1.5 sentence-transformer model.
     Optimized for batch candidate ingestion and query-passage search retrieval.
     """
-    def __init__(self, model_name: str = "BAAI/bge-large-en-v1.5", device: Optional[str] = None):
+    def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2", device: Optional[str] = None):
         import torch
         
         # Determine execution hardware: GPU (CUDA) if available, fallback to CPU
@@ -23,13 +23,19 @@ class CandidateEmbedder:
         
         try:
             self.model = SentenceTransformer(model_name, device=self.device)
-            # Dimension size of BAAI/bge-large-en-v1.5 is 1024
-            self.dimension = 1024
-            logger.info("Embedding model loaded successfully.")
+            # Retrieve model output dimension dynamically
+            self.dimension = self.model.get_embedding_dimension()
+            logger.info(f"Embedding model loaded successfully. Dimension: {self.dimension}")
         except Exception as exc:
-            logger.critical(f"Failed to load embedding model '{model_name}': {exc}")
-            raise
-
+            self.device = "cpu"
+            logger.warning(f"Could not load SentenceTransformer on {device or 'cuda'}, falling back to cpu: {exc}")
+            try:
+                self.model = SentenceTransformer(model_name, device="cpu")
+                self.dimension = self.model.get_embedding_dimension()
+            except Exception as inner_exc:
+                logger.critical(f"Failed to load embedding model '{model_name}' on CPU: {inner_exc}")
+                raise
+ 
     def embed_passages(self, texts: List[str], batch_size: int = 64) -> np.ndarray:
         """
         Generates dense vector embeddings for candidate profile passages.
@@ -52,15 +58,19 @@ class CandidateEmbedder:
         except Exception as exc:
             logger.error(f"Error during passage encoding: {exc}")
             raise
-
+ 
     def embed_query(self, query: str) -> np.ndarray:
         """
         Generates a dense vector embedding for a job description search query.
-        Appends the required BGE retrieval prefix to optimize search performance.
+        Appends BGE retrieval prefix only if using a BGE model.
         """
         # BGE v1.5 recommendation: append instructions to search query inputs
-        instruction = "Represent this sentence for searching relevant passages: "
-        formatted_query = f"{instruction}{query.strip()}"
+        model_name_lower = self.model.model_card_data.model_name.lower() if self.model.model_card_data and self.model.model_card_data.model_name else ""
+        if "bge-" in model_name_lower:
+            instruction = "Represent this sentence for searching relevant passages: "
+            formatted_query = f"{instruction}{query.strip()}"
+        else:
+            formatted_query = query.strip()
         
         try:
             query_vector = self.model.encode(
