@@ -1,0 +1,33 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest cache
+.pytest_cache/
+
+# Local Environment Variables & SQLite DB
+*.env
+backend/talentlens.db
+backend/talentlens.db-journal
+talentlens.db
+*.db
+*.db-journal
+
+# Local pipeline outputs (uploaded files, locally saved FAISS indices, exported CSVs)
+backend/outputs/
+
+# Frontend dependencies and builds
+frontend/node_modules/
+frontend/dist/
+frontend/.eslintcache
+
+# OS generated files
+.DS_Store
+Thumbs.db
