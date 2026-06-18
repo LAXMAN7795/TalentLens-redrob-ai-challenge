@@ -1,76 +1,99 @@
 # TalentLens | AI Candidate Ranking & Recruiter Console
 
-An AI-powered candidate evaluation, ranking, and explanation engine designed for the **Redrob Data & AI Challenge**. TalentLens parses candidate resumes, computes dense semantic similarities against job descriptions, identifies honeypot keyword-stuffing, evaluates candidate tenure growth, soft skills, and academic alignments, and uses Groq AI (Llama 3.3) to generate recruiter summaries and screening questions.
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/LAXMAN7795/TalentLens-redrob-ai-challenge)
+TalentLens is an AI-powered candidate evaluation, ranking, and explanation engine designed for the **Redrob Data & AI Challenge**. It is a locally-run application that parses candidate profiles, performs dense semantic similarity searches against job descriptions, applies rule-based filtering (for experience tenure and educational degrees), penalizes hidden keyword stuffing (honeypot detection), and utilizes Groq LLMs (Llama 3.3) to draft structured recruiter fit cards and interview questions.
 
 ---
 
-## Key Features
+## Architecture & System Design
 
-1. **Memory-Efficient Parsing**: Streams candidate JSONL files line-by-line using an $O(1)$ memory footprint to handle datasets up to 100,000+ records.
-2. **Hybrid Scoring Engine**:
-   * **Semantic Search**: Uses `BAAI/bge-large-en-v1.5` embeddings and Flat Inner Product FAISS indices to perform semantic matching.
-   * **Honeypot Penalty**: Detects and penalizes hidden keyword stuffing (e.g. repeating keywords like `Python` in invisible sections) and timelines manipulation.
-   * **Mandatory Disqualifiers**: Employs Regex word-boundary filtering to filter out candidates who do not meet minimum experience years or degree qualifications.
-   * **Custom Criteria Scorers**: Evaluates core skills inventories, role stability, behavioral verbs (leadership, delivery, teamwork), and education GPA bonuses.
-3. **AI Recruiter Drawer Cards**: Queries Groq (Llama 3.3) to compile fit summaries, candidate strengths, gaps/concerns, and custom screening questions.
-4. **Interactive Console**: Built with React, Vite, and Tailwind CSS. Features role creation, progress polling, dynamic leaderboards, score distribution charts, and client-side CSV downloads.
-
----
-
-## One-Click Deployment (Render)
-
-Click the **Deploy to Render** button above. Render will read our [render.yaml](render.yaml) blueprint and provision:
-1. **FastAPI Web Service**: Compiles the backend container, downloads/caches the BGE model, and serves the API. *(Configured on the **Starter** instance type to provide the 2 GB RAM required for ML models).*
-2. **React Static Site**: Builds the React frontend and connects it dynamically to your backend service.
-
-During deployment, Render will prompt you for your `GROQ_API_KEY`. Simply input your key and the build will execute automatically!
+1. **Streaming Candidate Ingestion**: Built with a memory-efficient streaming generator parsing JSONL resume datasets in $O(1)$ RAM overhead.
+2. **Hybrid Composite Scoring**:
+   * **Semantic Similarity**: Vector embeddings generated locally using `sentence-transformers/all-MiniLM-L6-v2` (90 MB, 384 dimensions) index candidates via FAISS flat inner-product search.
+   * **Honeypot keyword Penalty**: Detects and penalizes candidates trying to manipulate search rankings by stuffing repeated keywords in hidden profile summaries.
+   * **Hard Disqualifiers**: Employs Regex boundaries to filter out candidates who do not meet mandatory criteria (e.g. minimum years of experience, target degrees).
+   * **Core Criteria Matchers**: Scores candidates across skills inventories, behavioral action verbs (leadership, delivery, teamwork), and educational pedigree.
+3. **AI Explanations**: Integrates with Groq API (Llama-3.3-70b-versatile) to dynamically compile fit evaluations, highlights, concerns, and interview questions. Fully supports local rule-based template fallbacks if the LLM backend is offline or rate-limited.
+4. **Recruiter Console**: React and Vite dashboard containing job creation modals, upload panels, dynamic leaderboards, SVG score distribution charts, detail drawers, and ranked CSV exporter.
 
 ---
 
 ## Local Development Setup
 
 ### 1. Prerequisites
-Ensure you have the following installed:
-* Python 3.10+
-* Node.js 18+
+Ensure you have the following installed on your local system:
+* **Python 3.10+**
+* **Node.js 18+**
+
+---
 
 ### 2. Backend Server Setup
-1. Navigate to `backend/` and create a virtual environment:
-   ```bash
+
+All commands should be executed from the **root directory** of the project repository.
+
+1. **Create Virtual Environment**:
+   ```powershell
    python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
+
+2. **Activate Virtual Environment**:
+   * **Windows (PowerShell)**:
+     ```powershell
+     .venv\Scripts\Activate.ps1
+     ```
+   * **macOS / Linux**:
+     ```bash
+     source .venv/bin/activate
+     ```
+
+3. **Install Dependencies**:
+   ```powershell
+   pip install -r backend/requirements.txt
    ```
-3. Create a `.env` file in the `backend/` folder and add your Groq API key:
+
+4. **Environment Configuration**:
+   Create a `.env` file inside the `backend/` directory:
    ```env
    GROQ_API_KEY=your_groq_api_key_here
-   DATABASE_URL=sqlite:///talentlens.db
+   GROQ_MODEL=llama-3.3-70b-versatile
+   DATABASE_URL=sqlite:///./talentlens.db
    ```
-4. Start the FastAPI server:
-   ```bash
+   *(Note: The database will be created automatically at `backend/talentlens.db` during server startup).*
+
+5. **Start FastAPI Backend Server**:
+   Run the following command from the project root:
+   ```powershell
    python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
    ```
+   The backend API will run at `http://127.0.0.1:8000/`. You can view the interactive Swagger docs at `http://127.0.0.1:8000/docs`.
+
+---
 
 ### 3. Frontend App Setup
-1. Navigate to the `frontend/` folder:
-   ```bash
+
+1. **Navigate to the Frontend Directory**:
+   ```powershell
    cd frontend
+   ```
+
+2. **Install Dependencies**:
+   ```powershell
    npm install
    ```
-2. Start the Vite server:
-   ```bash
+
+3. **Start the React Dev Server**:
+   ```powershell
    npm run dev
    ```
-3. Open your browser and navigate to `http://localhost:5173/`.
+   The frontend console dashboard will run at `http://localhost:5173/`. Open it in your web browser to start recruiting.
 
-### 4. Running Tests
-To run the full suite of backend unit and performance tests, run the following command in the root workspace:
-```bash
-$env:PYTHONPATH="."  # Set pythonpath
+---
+
+### 4. Running Backend Test Suites
+
+We have implemented a comprehensive test suite (24 passing tests) covering ingestion parser safety, JD extractors, vector embeddings, scoring systems, database pipelines, and FastAPI endpoints.
+
+To run the automated tests, execute from the **root directory** of the repository:
+```powershell
+$env:PYTHONPATH="."
 .venv\Scripts\pytest
 ```
